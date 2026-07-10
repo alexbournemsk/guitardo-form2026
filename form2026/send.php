@@ -1,11 +1,13 @@
 <?php
 declare(strict_types=1);
 
-// ---- Настройки -------------------------------------------------
-const TO_EMAIL   = 'ag@guitardo.ru';
-const FROM_EMAIL = 'noreply@guitardo.ru'; // должен быть в домене guitardo.ru
-const FROM_NAME  = 'Guitardo — форма записи';
-// ------------------------------------------------------------------
+require __DIR__ . '/config.php';
+require __DIR__ . '/vendor/phpmailer/src/Exception.php';
+require __DIR__ . '/vendor/phpmailer/src/PHPMailer.php';
+require __DIR__ . '/vendor/phpmailer/src/SMTP.php';
+
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\PHPMailer;
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -46,24 +48,36 @@ if ($consent !== 'on') {
 
 $name = strip_tags($name);
 
-$subject = '=?UTF-8?B?' . base64_encode('Заявка на пробный урок — ' . $name) . '?=';
+$subject = 'Заявка на пробный урок — ' . $name;
 
 $body = "Новая заявка на пробный урок с сайта guitardo.ru/form2026\n\n"
     . "Имя Фамилия: {$name}\n"
     . "Телефон: {$phoneFormatted}\n"
     . 'Дата: ' . date('d.m.Y H:i') . "\n";
 
-$fromNameEncoded = '=?UTF-8?B?' . base64_encode(FROM_NAME) . '?=';
+$mail = new PHPMailer(true);
 
-$headers = [];
-$headers[] = 'From: ' . $fromNameEncoded . ' <' . FROM_EMAIL . '>';
-$headers[] = 'Reply-To: ' . FROM_EMAIL;
-$headers[] = 'Content-Type: text/plain; charset=UTF-8';
-$headers[] = 'X-Mailer: PHP/' . phpversion();
+try {
+    $mail->isSMTP();
+    $mail->Host       = SMTP_HOST;
+    $mail->Port       = SMTP_PORT;
+    $mail->SMTPSecure = SMTP_SECURE;
+    $mail->SMTPAuth   = true;
+    $mail->Username   = SMTP_USERNAME;
+    $mail->Password   = SMTP_PASSWORD;
+    $mail->CharSet    = 'UTF-8';
 
-$sent = mail(TO_EMAIL, $subject, $body, implode("\r\n", $headers));
+    $mail->setFrom(FROM_EMAIL, FROM_NAME);
+    $mail->addAddress(TO_EMAIL);
+    $mail->addReplyTo(FROM_EMAIL, FROM_NAME);
 
-if (!$sent) {
+    $mail->Subject = $subject;
+    $mail->Body    = $body;
+    $mail->isHTML(false);
+
+    $mail->send();
+} catch (PHPMailerException $e) {
+    error_log('Mail send failed: ' . $mail->ErrorInfo);
     respond(false, 'Не удалось отправить письмо. Попробуйте позже.');
 }
 
