@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require __DIR__ . '/config.php';
+require __DIR__ . '/amo.php';
 require __DIR__ . '/vendor/phpmailer/src/Exception.php';
 require __DIR__ . '/vendor/phpmailer/src/PHPMailer.php';
 require __DIR__ . '/vendor/phpmailer/src/SMTP.php';
@@ -127,4 +128,20 @@ try {
     respond(false, 'Внутренняя ошибка сервера.' . (defined('DEBUG_MODE') && DEBUG_MODE ? ' [' . $e->getMessage() . ']' : ''));
 }
 
-respond(true);
+// Отправка в amoCRM — best-effort: письмо уже ушло (основной канал),
+// поэтому сбой интеграции не должен показывать посетителю ошибку.
+// Все проблемы пишутся в logs/amo.log, в режиме отладки — ещё и в ответ.
+$amoNote = '';
+try {
+    $amoResult = sendToAmo($name, $phoneFormatted, __DIR__ . '/logs/amo.log');
+    if (!$amoResult['ok'] && defined('DEBUG_MODE') && DEBUG_MODE) {
+        $amoNote = ' [amoCRM: ' . $amoResult['error'] . ']';
+    }
+} catch (Throwable $e) {
+    logLine($logFile, 'amoCRM unexpected error: ' . $e->getMessage());
+    if (defined('DEBUG_MODE') && DEBUG_MODE) {
+        $amoNote = ' [amoCRM: ' . $e->getMessage() . ']';
+    }
+}
+
+respond(true, $amoNote !== '' ? 'OK' . $amoNote : '');
