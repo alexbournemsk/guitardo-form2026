@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Запись на пробный урок — Guitardo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="page">
+  <div class="card">
+    <h1>Запись на пробный урок</h1>
+    <p class="subtitle">Оставьте заявку — мы перезвоним и подберём удобное время</p>
+
+    <form id="trial-form" class="form" novalidate>
+      <div class="field">
+        <label for="name">Имя Фамилия</label>
+        <input type="text" id="name" name="name" placeholder="Иван Иванов" required autocomplete="name">
+        <span class="error" data-error-for="name"></span>
+      </div>
+
+      <div class="field">
+        <label for="phone">Телефон</label>
+        <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__" required autocomplete="tel" inputmode="tel">
+        <span class="error" data-error-for="phone"></span>
+      </div>
+
+      <!-- honeypot, скрыто от людей, ловит ботов -->
+      <div class="field hp">
+        <label for="website">Website</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="field field-checkbox">
+        <label class="checkbox-label">
+          <input type="checkbox" id="consent" name="consent" required>
+          <span>Я согласен с
+            <a href="https://guitardo.ru/policy.pdf" target="_blank" rel="noopener">политикой обработки персональных данных</a>
+            и принимаю условия
+            <a href="https://guitardo.ru/legal-offer/ch.pdf" target="_blank" rel="noopener">Договора-оферты</a>
+          </span>
+        </label>
+        <span class="error" data-error-for="consent"></span>
+      </div>
+
+      <button type="submit" id="submit-btn">Записаться на пробный урок</button>
+
+      <div id="form-status" class="form-status" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</main>
+<script src="script.js"></script>
+</body>
+</html>
